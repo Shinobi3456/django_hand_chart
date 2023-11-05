@@ -1,6 +1,7 @@
 from colorfield.fields import ColorField
 from django.db import models
 from django.urls import reverse
+from django.core.cache import cache
 
 
 class PokerChips(models.Model):
@@ -122,6 +123,18 @@ class ContentHandChart(models.Model):
 
     def __str__(self):
         return self.chip.name
+
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+
+        # Перебираем все связанные поля и удаляем кэш
+        for field_name in ['utg', 'utg1', 'mp', 'mp1', 'hj', 'co', 'btn', 'sb']:
+            options_actions = getattr(self, field_name).all()
+
+            for options_action in options_actions:
+                cache_key = f'stacks_cache_{options_action.id}'
+                if cache.get(cache_key):
+                    cache.delete(cache_key)
 
     def colors_in_chips(self):
         colors = []

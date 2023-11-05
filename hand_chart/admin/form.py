@@ -8,58 +8,14 @@ class ContentHandChartForm(forms.ModelForm):
         model = models.ContentHandChart
         fields = '__all__'
 
-    def clean_utg(self):
-        utg = self.cleaned_data['utg']
-        if len(utg) > 2:
-            raise forms.ValidationError(
-                "Максимум можно выбрать только 2 варианта.")
-        return utg
+    def clean(self):
+        cleaned_data = super().clean()
 
-    def clean_utg1(self):
-        utg1 = self.cleaned_data['utg1']
-        if len(utg1) > 2:
-            raise forms.ValidationError(
-                "Максимум можно выбрать только 2 варианта.")
-        return utg1
+        fields_to_check = ['utg', 'utg1', 'co', 'hl', 'mp', 'mp1', 'btn', 'sb']
 
-    def clean_co(self):
-        co = self.cleaned_data['co']
-        if len(co) > 2:
-            raise forms.ValidationError(
-                "Максимум можно выбрать только 2 варианта.")
-        return co
+        for field_name in fields_to_check:
+            field_value = cleaned_data.get(field_name)
+            if field_value and len(field_value) > 2:
+                raise forms.ValidationError(f"Максимум можно выбрать только 2 варианта для поля {field_name}.")
 
-    def clean_hl(self):
-        hl = self.cleaned_data['hl']
-        if len(hl) > 2:
-            raise forms.ValidationError(
-                "Максимум можно выбрать только 2 варианта.")
-        return hl
-
-    def clean_mp(self):
-        mp = self.cleaned_data['mp']
-        if len(mp) > 2:
-            raise forms.ValidationError(
-                "Максимум можно выбрать только 2 варианта.")
-        return mp
-
-    def clean_mp1(self):
-        mp1 = self.cleaned_data['mp1']
-        if len(mp1) > 2:
-            raise forms.ValidationError(
-                "Максимум можно выбрать только 2 варианта.")
-        return mp1
-
-    def clean_btn(self):
-        btn = self.cleaned_data['btn']
-        if len(btn) > 2:
-            raise forms.ValidationError(
-                "Максимум можно выбрать только 2 варианта.")
-        return btn
-
-    def clean_sb(self):
-        sb = self.cleaned_data['sb']
-        if len(sb) > 2:
-            raise forms.ValidationError(
-                "Максимум можно выбрать только 2 варианта.")
-        return sb
+        return cleaned_data

@@ -83,9 +83,16 @@ DATABASES = {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
         'NAME': 'handchart',
         'USER': 'handchart_user',
-        'PASSWORD': '26CjvyUjhtGjlgAhfr',
+        'PASSWORD': 'Cj6tKVZg1QLH',
         'HOST': '127.0.0.1',
-        'PORT': '5432',
+        'PORT': '5436',
+    }
+}
+
+CACHES = {
+    "default": {
+        "BACKEND": "django.core.cache.backends.redis.RedisCache",
+        "LOCATION": "redis://127.0.0.1:6389",
     }
 }
 

@@ -1,5 +1,5 @@
 from django.contrib.admin import SimpleListFilter
-from django.db import connection
+from django.db.models import Q
 
 import hand_chart.models as models
 
@@ -16,23 +16,29 @@ class StackFilter(SimpleListFilter):
         if self.value() == 'ALL':
             return queryset
         if self.value():
-            color_ids = []
-            with connection.cursor() as cursor:
-                cursor.execute("""
-                SELECT utg.color_id, utg1.color_id, mp.color_id, mp1.color_id, hl.color_id, co.color_id, btn.color_id, sb.color_id
-                FROM ha
-                    JOIN rye_range_ryerangecontent on rye_range_ryerangecontent.table_id=rye_range_tableryerange.id
-                    JOIN rye_range_ryerangecontent_utg utg on rye_range_ryerangecontent.id = utg.ryerangecontent_id
-                    JOIN rye_range_ryerangecontent_utg1 utg1 on rye_range_ryerangecontent.id = utg1.ryerangecontent_id
-                    JOIN rye_range_ryerangecontent_mp mp on rye_range_ryerangecontent.id = mp.ryerangecontent_id
-                    JOIN rye_range_ryerangecontent_mp1 mp1 on rye_range_ryerangecontent.id = mp1.ryerangecontent_id
-                    JOIN rye_range_ryerangecontent_hl hl on rye_range_ryerangecontent.id = hl.ryerangecontent_id
-                    JOIN rye_range_ryerangecontent_co co on rye_range_ryerangecontent.id = co.ryerangecontent_id
-                    JOIN rye_range_ryerangecontent_btn btn on rye_range_ryerangecontent.id = btn.ryerangecontent_id
-                    JOIN rye_range_ryerangecontent_sb sb on rye_range_ryerangecontent.id = sb.ryerangecontent_id
-                WHERE rye_range_tableryerange.stack_id=%s
-                """, [self.value()])
+            result = models.ContentHandChart.objects.filter(table__stack_id=self.value()).prefetch_related(
+                'utg',
+                'utg1',
+                'mp',
+                'mp1',
+                'hj',
+                'co',
+                'btn',
+                'sb'
+            ).values_list(
+                'utg__id',
+                'utg1__id',
+                'mp__id',
+                'mp1__id',
+                'hj__id',
+                'co__id',
+                'btn__id',
+                'sb__id'
+            )
 
-                for row in cursor.fetchall():
-                    color_ids += [row[i] for i in range(0, 8)]
-            return queryset.filter(id__in=set(color_ids))
+            actions_ids = []
+            for row in result:
+                for action_id in row:
+                    if action_id:
+                        actions_ids.append(action_id)
+            return queryset.filter(Q(id__in=set(actions_ids)) | Q(id__isnull=True))
